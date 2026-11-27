@@ -234,8 +234,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     clearSessionUser();
+    if (user && state.settings.reminderEmail === user.email) {
+      dispatch({ type: "UPDATE_SETTINGS", settings: { reminderEmail: "" } });
+    }
     dispatch({ type: "SET_USER", user: null });
-  }, []);
+  }, [user, state.settings.reminderEmail]);
 
   return (
     <AppContext.Provider

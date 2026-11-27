@@ -96,14 +96,14 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-1.5 lg:gap-5">
+          <div className="hidden md:flex items-center gap-1 lg:gap-4">
             {LINKS.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 aria-current={pathname === l.href ? "page" : undefined}
                 className={cn(
-                  "text-sm font-medium transition-colors focus-ring rounded-lg px-1.5 lg:px-2 py-2 min-h-[44px] flex items-center whitespace-nowrap",
+                  "text-[13px] lg:text-sm font-medium transition-colors focus-ring rounded-lg px-1.5 lg:px-2.5 py-2 min-h-[44px] flex items-center whitespace-nowrap",
                   pathname === l.href
                     ? "text-[var(--primary)] border-b-2 border-[var(--primary)] rounded-b-none"
                     : "text-[var(--muted)] hover:text-[var(--text)]"
@@ -115,7 +115,7 @@ export default function Navbar() {
           </div>
 
           {/* Theme toggle + Auth + Add task + hamburger */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {isLoaded && (
               <button
                 type="button"
@@ -133,29 +133,18 @@ export default function Navbar() {
             )}
             {isLoaded &&
               (user ? (
-                <div className="hidden sm:flex items-center gap-1.5">
-                  <Link
-                    href="/login"
-                    aria-label={`Account: ${user.name}`}
-                    className="inline-flex items-center gap-1.5 px-2.5 min-h-[40px] rounded-xl text-xs font-medium bg-[var(--bg)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--primary)] focus-ring max-w-[130px]"
-                    title={`Signed in as ${user.email}`}
-                  >
-                    <User size={15} className="text-[var(--primary)] shrink-0" aria-hidden="true" />
-                    <span className="hidden lg:inline truncate">{user.name.split(" ")[0]}</span>
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      logout();
-                      showToast("Signed out.");
-                    }}
-                    className="btn-secondary px-2.5"
-                    aria-label="Sign out"
-                    title="Sign out"
-                  >
-                    <LogOut size={16} aria-hidden="true" />
-                  </button>
-                </div>
+                <Link
+                  href="/login"
+                  aria-label={`Account: ${user.name}`}
+                  className={cn(
+                    "hidden sm:inline-flex items-center gap-1.5 px-2.5 min-h-[44px] rounded-xl text-xs font-medium bg-[var(--bg)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--primary)] focus-ring max-w-[120px]",
+                    pathname === "/login" && "border-[var(--primary)] text-[var(--primary)]"
+                  )}
+                  title={`Signed in as ${user.email} — click to manage or sign out`}
+                >
+                  <User size={15} className="text-[var(--primary)] shrink-0" aria-hidden="true" />
+                  <span className="hidden lg:inline truncate">{user.name.split(" ")[0]}</span>
+                </Link>
               ) : (
                 <Link
                   href="/login"

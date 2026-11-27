@@ -118,7 +118,7 @@ export default function ChronoBot() {
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-chronotriage-client": "1" },
         body: JSON.stringify({
           message: trimmed,
           history: nextHistory.slice(0, -1),

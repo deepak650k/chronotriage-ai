@@ -4,7 +4,7 @@
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getClientIp, isRateLimited } from "@/lib/rateLimit";
+import { getClientIp, isRateLimited, isCsrfBlocked } from "@/lib/rateLimit";
 import {
   ChatContextSchema,
   WEBSITE_KNOWLEDGE_BASE,
@@ -59,6 +59,9 @@ BOUNDARIES
 ${WEBSITE_KNOWLEDGE_BASE}`;
 
 export async function POST(req: Request) {
+  if (isCsrfBlocked(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   if (isRateLimited(getClientIp(req))) {
     return NextResponse.json(
       { error: "Slow down a little and try again." },

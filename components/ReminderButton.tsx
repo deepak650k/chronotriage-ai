@@ -50,7 +50,7 @@ export default function ReminderButton({ settings, tasks, results }: Props) {
     try {
       const res = await fetch("/api/reminders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-chronotriage-client": "1" },
         body: JSON.stringify({
           email: settings.reminderEmail.trim(),
           date: format(new Date(), "yyyy-MM-dd"),

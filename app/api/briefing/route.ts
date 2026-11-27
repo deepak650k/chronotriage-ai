@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getClientIp, isRateLimited } from "@/lib/rateLimit";
+import { getClientIp, isRateLimited, isCsrfBlocked } from "@/lib/rateLimit";
 import { buildBriefingScript } from "@/lib/briefingScript";
 
 const Body = z.object({
@@ -13,6 +13,9 @@ const Body = z.object({
 });
 
 export async function POST(req: Request) {
+  if (isCsrfBlocked(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   if (isRateLimited(getClientIp(req))) {
     return NextResponse.json(
       { error: "Slow down a little and try again." },

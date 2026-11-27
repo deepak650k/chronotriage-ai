@@ -66,7 +66,7 @@ export default function BriefingPlayer({ settings, tasks, results, today }: Prop
     try {
       const res = await fetch("/api/briefing", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-chronotriage-client": "1" },
         body: stateKey,
       });
 

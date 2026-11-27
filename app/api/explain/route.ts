@@ -3,7 +3,7 @@
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getClientIp, isRateLimited } from "@/lib/rateLimit";
+import { getClientIp, isRateLimited, isCsrfBlocked } from "@/lib/rateLimit";
 
 const Body = z.object({
   title: z.string().max(80),
@@ -26,6 +26,9 @@ const CATEGORY_NAMES = {
 } as const;
 
 export async function POST(req: Request) {
+  if (isCsrfBlocked(req)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });

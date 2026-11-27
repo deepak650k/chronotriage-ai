@@ -40,7 +40,7 @@ export default function TaskCard({ task, result, onEdit }: Props) {
     try {
       const res = await fetch("/api/explain", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-chronotriage-client": "1" },
         body: JSON.stringify({
           title: task.title,
           course: task.course,

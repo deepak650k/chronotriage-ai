@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/context";
 import { useToast } from "@/components/Toast";
-import { isValidEmail } from "@/lib/auth";
+import { isValidEmail, validatePasswordStrength } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 type AuthMode = "signin" | "signup";
@@ -55,8 +55,11 @@ export default function LoginPage() {
       setError("Please enter a valid email address.");
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (mode === "signup") {
+      const pwErr = validatePasswordStrength(password);
+      if (pwErr) { setError(pwErr); return; }
+    } else if (!password) {
+      setError("Please enter your password.");
       return;
     }
 
@@ -253,7 +256,7 @@ export default function LoginPage() {
                 autoComplete={mode === "signup" ? "new-password" : "current-password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder={mode === "signup" ? "Min 8 chars · A-Z · 0-9 · symbol" : "Enter your password"}
                 className="input pl-9 pr-11"
                 required
               />
@@ -270,6 +273,37 @@ export default function LoginPage() {
                 )}
               </button>
             </div>
+            {/* Password strength meter — only shown during signup */}
+            {mode === "signup" && password.length > 0 && (() => {
+              const checks = [
+                password.length >= 8,
+                /[A-Z]/.test(password),
+                /[a-z]/.test(password),
+                /[0-9]/.test(password),
+                /[^A-Za-z0-9]/.test(password),
+              ];
+              const passed = checks.filter(Boolean).length;
+              const labels = ["Weak", "Weak", "Fair", "Good", "Strong", "Very strong"];
+              const colors = ["bg-red-500", "bg-red-400", "bg-yellow-400", "bg-lime-400", "bg-green-500", "bg-green-600"];
+              return (
+                <div className="mt-1.5 space-y-1">
+                  <div className="flex gap-1">
+                    {checks.map((ok, i) => (
+                      <div key={i} className={cn("h-1 flex-1 rounded-full transition-all", ok ? colors[passed] : "bg-[var(--border)]")} />
+                    ))}
+                  </div>
+                  <p className={cn("text-xs font-medium", passed <= 1 ? "text-red-500" : passed <= 2 ? "text-yellow-500" : passed <= 3 ? "text-lime-600" : "text-green-600")}>
+                    {labels[passed]} — {passed < 5 ? "add " + [
+                      !checks[0] && "8+ chars",
+                      !checks[1] && "uppercase",
+                      !checks[2] && "lowercase",
+                      !checks[3] && "number",
+                      !checks[4] && "symbol",
+                    ].filter(Boolean).join(", ") : "All requirements met ✓"}
+                  </p>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Automation email opt-in */}
@@ -325,7 +359,7 @@ export default function LoginPage() {
       </div>
 
       <p className="text-xs text-center text-[var(--muted)] px-2">
-        Browser profiles stay privately on this device (salted SHA-256 in localStorage). Please use a unique study password rather than reusing sensitive passwords.
+        Your data is stored privately on this device only (PBKDF2-SHA256 · per-user isolation · 8h session expiry · 5-attempt lockout). No passwords or tasks ever leave your browser.
       </p>
     </div>
   );

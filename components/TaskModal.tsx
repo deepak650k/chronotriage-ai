@@ -8,6 +8,7 @@ import { addDays, format } from "date-fns";
 import type { Category, Task } from "@/lib/types";
 import { useApp } from "@/lib/context";
 import { useToast } from "@/components/Toast";
+import { sanitizeTitle, sanitizeNotes, sanitizeText } from "@/lib/sanitize";
 import { triage } from "@/lib/triage";
 import { cn, importanceLabel } from "@/lib/utils";
 import ConfirmDialog from "./ConfirmDialog";
@@ -51,7 +52,8 @@ const CATEGORY_LABELS: Record<Category, string> = {
 
 function validate(data: FormData): FormErrors {
   const errors: FormErrors = {};
-  if (!data.title.trim()) errors.title = "Title is required.";
+  const cleanTitle = sanitizeTitle(data.title);
+  if (!cleanTitle) errors.title = "Title is required.";
   else if (data.title.trim().length > 80)
     errors.title = "Title must be 80 characters or fewer.";
   if (!data.dueDate) errors.dueDate = "Due date is required.";
@@ -168,14 +170,14 @@ function TaskModalInner({
     if (Object.keys(errs).length > 0) return;
 
     const payload = {
-      title: form.title.trim(),
-      course: form.course.trim(),
+      title: sanitizeTitle(form.title),
+      course: sanitizeText(form.course, 40),
       dueDate: form.dueDate,
       estimatedHours: Math.round(parseFloat(form.estimatedHours) * 2) / 2,
       importance: form.importance,
       status: task?.status ?? ("todo" as const),
       dependsOn: form.dependsOn,
-      notes: form.notes.trim(),
+      notes: sanitizeNotes(form.notes),
       userOverride: form.userOverride === "" ? null : (form.userOverride as Category),
     };
 

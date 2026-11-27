@@ -12,9 +12,14 @@ export function getClientIp(req: Request): string {
   return req.headers.get("x-real-ip")?.trim() || "unknown";
 }
 
-export function isRateLimited(ip: string, now = Date.now()): boolean {
-  const timestamps = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (timestamps.length >= MAX_REQUESTS) {
+export function isRateLimited(
+  ip: string,
+  now = Date.now(),
+  maxRequests = MAX_REQUESTS,
+  windowMs = WINDOW_MS
+): boolean {
+  const timestamps = (hits.get(ip) ?? []).filter((t) => now - t < windowMs);
+  if (timestamps.length >= maxRequests) {
     hits.set(ip, timestamps);
     return true;
   }

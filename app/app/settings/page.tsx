@@ -2,12 +2,13 @@
 
 "use client";
 
-import { useState } from "react";
-import { Download, RotateCcw, Sparkles, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Download, RotateCcw, Sparkles, AlertCircle, CheckCircle2, ShieldCheck, RefreshCw } from "lucide-react";
 import type { Settings } from "@/lib/types";
 import { useApp } from "@/lib/context";
 import { useToast } from "@/components/Toast";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { isReminderEmailVerified } from "@/lib/storage";
 
 export default function SettingsPage() {
   const { state, updateSettings, loadDemo, reset, isLoaded } = useApp();
@@ -155,6 +156,236 @@ export default function SettingsPage() {
   );
 }
 
+// ── OTP verification states ─────────────────────────────────────────────────
+type OtpState =
+  | { phase: "idle" }
+  | { phase: "sending" }
+  | { phase: "code"; challengeToken: string; countdown: number }
+  | { phase: "confirming"; challengeToken: string; countdown: number }
+  | { phase: "verified" }
+  | { phase: "error"; message: string };
+
+function EmailVerifyWidget({
+  email,
+  settings,
+  updateSettings,
+}: {
+  email: string;
+  settings: Settings;
+  updateSettings: (s: Partial<Settings>) => void;
+}) {
+  const [otpState, setOtpState] = useState<OtpState>({ phase: "idle" });
+  const [code, setCode] = useState("");
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { showToast } = useToast();
+
+  const isVerified = isReminderEmailVerified(settings);
+  // If email changed since last verification, it's no longer valid
+  const verifiedForThisEmail =
+    isVerified &&
+    settings.verifiedReminderEmail?.trim().toLowerCase() === email.trim().toLowerCase();
+
+  // Tick countdown
+  useEffect(() => {
+    if (
+      (otpState.phase === "code" || otpState.phase === "confirming") &&
+      otpState.countdown > 0
+    ) {
+      countdownRef.current = setInterval(() => {
+        setOtpState((prev) => {
+          if (prev.phase !== "code" && prev.phase !== "confirming") return prev;
+          if (prev.countdown <= 1) {
+            clearInterval(countdownRef.current!);
+            return { phase: "error", message: "Code expired. Request a new one." };
+          }
+          return { ...prev, countdown: prev.countdown - 1 };
+        });
+      }, 1000);
+    }
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otpState.phase]);
+
+  const sendCode = async () => {
+    setOtpState({ phase: "sending" });
+    setCode("");
+    try {
+      const res = await fetch("/api/reminders/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-chronotriage-client": "1" },
+        body: JSON.stringify({ action: "send", email: email.trim() }),
+      });
+      const data = (await res.json()) as { challengeToken?: string; expiresInSeconds?: number; error?: string };
+      if (!res.ok || !data.challengeToken) {
+        setOtpState({ phase: "error", message: data.error ?? "Could not send code. Try again." });
+        return;
+      }
+      setOtpState({
+        phase: "code",
+        challengeToken: data.challengeToken,
+        countdown: data.expiresInSeconds ?? 600,
+      });
+    } catch {
+      setOtpState({ phase: "error", message: "Network error. Please try again." });
+    }
+  };
+
+  const confirmCode = async () => {
+    if (otpState.phase !== "code" && otpState.phase !== "confirming") return;
+    const { challengeToken } = otpState;
+    const prevCountdown =
+      otpState.phase === "code" || otpState.phase === "confirming"
+        ? otpState.countdown
+        : 0;
+    setOtpState({ phase: "confirming", challengeToken, countdown: prevCountdown });
+    try {
+      const res = await fetch("/api/reminders/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-chronotriage-client": "1" },
+        body: JSON.stringify({ action: "confirm", email: email.trim(), code: code.trim(), challengeToken }),
+      });
+      const data = (await res.json()) as { verifiedToken?: string; error?: string };
+      if (!res.ok || !data.verifiedToken) {
+        // Revert to code entry phase so they can retry
+        setOtpState({ phase: "code", challengeToken, countdown: 0 });
+        showToast(data.error ?? "Incorrect code. Please try again.");
+        return;
+      }
+      updateSettings({
+        verifiedReminderEmail: email.trim().toLowerCase(),
+        verifiedEmailToken: data.verifiedToken,
+      });
+      setOtpState({ phase: "verified" });
+      showToast("Email verified! Reminders are now enabled.");
+    } catch {
+      setOtpState({ phase: "code", challengeToken, countdown: 0 });
+      showToast("Network error. Please try again.");
+    }
+  };
+
+  const reset = () => {
+    setOtpState({ phase: "idle" });
+    setCode("");
+    if (countdownRef.current) clearInterval(countdownRef.current);
+  };
+
+  // ── Verified badge ────────────────────────────────────────────────────────
+  if (verifiedForThisEmail && otpState.phase !== "code" && otpState.phase !== "confirming") {
+    return (
+      <div className="flex items-center gap-3 mt-2 flex-wrap">
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+          <ShieldCheck size={16} aria-hidden="true" />
+          Email verified
+        </span>
+        <button
+          onClick={sendCode}
+          className="text-xs text-[var(--muted)] underline underline-offset-2 hover:text-[var(--text)] transition-colors"
+          aria-label="Re-verify email"
+        >
+          Re-verify
+        </button>
+      </div>
+    );
+  }
+
+  // ── Send code button (idle / error) ───────────────────────────────────────
+  if (otpState.phase === "idle" || otpState.phase === "error") {
+    return (
+      <div className="mt-2 space-y-1.5">
+        {otpState.phase === "error" && (
+          <p role="alert" className="text-xs text-[var(--must)] flex items-center gap-1">
+            <AlertCircle size={13} aria-hidden="true" />
+            {otpState.message}
+          </p>
+        )}
+        <button
+          onClick={sendCode}
+          className="btn-secondary text-sm gap-1.5"
+          aria-label="Send verification code to this email"
+        >
+          <ShieldCheck size={15} aria-hidden="true" />
+          Send verification code
+        </button>
+        <p className="text-xs text-[var(--muted)]">
+          We&apos;ll email a 6-digit code to confirm you own this address.
+        </p>
+      </div>
+    );
+  }
+
+  // ── Sending spinner ───────────────────────────────────────────────────────
+  if (otpState.phase === "sending") {
+    return (
+      <div className="mt-2 flex items-center gap-2 text-sm text-[var(--muted)]">
+        <RefreshCw size={14} className="animate-spin" aria-hidden="true" />
+        Sending code…
+      </div>
+    );
+  }
+
+  // ── Code entry / confirming ───────────────────────────────────────────────
+  if (otpState.phase !== "code" && otpState.phase !== "confirming") return null;
+  const { countdown } = otpState;
+  const mins = Math.floor(countdown / 60);
+  const secs = String(countdown % 60).padStart(2, "0");
+  const countdownLabel = countdown > 0 ? `${mins}:${secs}` : "Expired";
+  const isExpired = countdown <= 0;
+
+  return (
+    <div className="mt-2 space-y-2">
+      <p className="text-xs text-[var(--muted)]">
+        Enter the 6-digit code sent to <strong>{email}</strong>.{" "}
+        {!isExpired && (
+          <span className="tabular-nums text-[var(--text)]">Expires in {countdownLabel}</span>
+        )}
+      </p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]{6}"
+          maxLength={6}
+          value={code}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          placeholder="123456"
+          aria-label="6-digit verification code"
+          className="input w-32 text-center tracking-widest font-mono"
+          autoComplete="one-time-code"
+          disabled={otpState.phase === "confirming" || isExpired}
+        />
+        <button
+          onClick={confirmCode}
+          disabled={code.length !== 6 || otpState.phase === "confirming" || isExpired}
+          className="btn-primary text-sm gap-1.5"
+          aria-label="Confirm verification code"
+        >
+          <CheckCircle2 size={15} aria-hidden="true" />
+          {otpState.phase === "confirming" ? "Verifying…" : "Confirm"}
+        </button>
+        {isExpired ? (
+          <button onClick={sendCode} className="text-xs underline underline-offset-2 text-[var(--primary)] hover:opacity-80">
+            Request new code
+          </button>
+        ) : (
+          <button onClick={reset} className="text-xs underline underline-offset-2 text-[var(--muted)] hover:text-[var(--text)]">
+            Cancel
+          </button>
+        )}
+      </div>
+      {!isExpired && (
+        <button
+          onClick={sendCode}
+          className="text-xs text-[var(--muted)] underline underline-offset-2 hover:text-[var(--text)] transition-colors"
+        >
+          Resend code
+        </button>
+      )}
+    </div>
+  );
+}
+
 function SettingsFields({
   initialSettings,
   updateSettings,
@@ -169,11 +400,19 @@ function SettingsFields({
     String(initialSettings.dailyStudyHours)
   );
   const [email, setEmail] = useState(initialSettings.reminderEmail);
+  const [settings, setSettings] = useState(initialSettings);
   const [errors, setErrors] = useState<{
     weeklyCap?: string;
     dailyHours?: string;
     email?: string;
   }>({});
+
+  // Mirror settings changes from parent into local state so the verify widget
+  // can call updateSettings and SettingsFields sees fresh values
+  const handleUpdateSettings = (patch: Partial<Settings>) => {
+    setSettings((prev) => ({ ...prev, ...patch }));
+    updateSettings(patch);
+  };
 
   const handleWeeklyChange = (val: string) => {
     setWeeklyCap(val);
@@ -186,7 +425,7 @@ function SettingsFields({
       return;
     }
     setErrors((e) => ({ ...e, weeklyCap: undefined }));
-    updateSettings({ weeklyCapacityHours: num });
+    handleUpdateSettings({ weeklyCapacityHours: num });
   };
 
   const handleDailyChange = (val: string) => {
@@ -200,7 +439,7 @@ function SettingsFields({
       return;
     }
     setErrors((e) => ({ ...e, dailyHours: undefined }));
-    updateSettings({ dailyStudyHours: num });
+    handleUpdateSettings({ dailyStudyHours: num });
   };
 
   const handleEmailChange = (val: string) => {
@@ -214,8 +453,23 @@ function SettingsFields({
       return;
     }
     setErrors((e) => ({ ...e, email: undefined }));
-    updateSettings({ reminderEmail: trimmed });
+    // If the email changed from the verified one, clear verification
+    if (
+      trimmed.toLowerCase() !== settings.verifiedReminderEmail?.trim().toLowerCase()
+    ) {
+      handleUpdateSettings({
+        reminderEmail: trimmed,
+        verifiedReminderEmail: "",
+        verifiedEmailToken: "",
+      });
+    } else {
+      handleUpdateSettings({ reminderEmail: trimmed });
+    }
   };
+
+  const emailTrimmed = email.trim();
+  const emailValid =
+    emailTrimmed !== "" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed);
 
   return (
     <section className="card p-5 space-y-5" aria-labelledby="planning-heading">
@@ -309,8 +563,17 @@ function SettingsFields({
           </p>
         ) : (
           <p id="email-help" className="text-xs text-[var(--muted)]">
-            Optional. Needed to enable the &ldquo;Email me today&apos;s plan&rdquo; button.
+            Optional. Verify to enable the &ldquo;Email me today&apos;s plan&rdquo; button.
           </p>
+        )}
+
+        {/* OTP verification widget — only shown when email is valid */}
+        {emailValid && !errors.email && (
+          <EmailVerifyWidget
+            email={emailTrimmed}
+            settings={settings}
+            updateSettings={handleUpdateSettings}
+          />
         )}
       </div>
     </section>

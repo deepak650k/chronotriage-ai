@@ -3,10 +3,11 @@
 "use client";
 
 import { useState } from "react";
-import { Mail } from "lucide-react";
+import { Mail, ShieldAlert } from "lucide-react";
 import type { Task, TriageResult, Settings } from "@/lib/types";
 import { useToast } from "@/components/Toast";
 import { currentWeekHours } from "@/lib/triage";
+import { isReminderEmailVerified } from "@/lib/storage";
 import { format } from "date-fns";
 
 interface Props {
@@ -20,6 +21,7 @@ export default function ReminderButton({ settings, tasks, results }: Props) {
   const [sending, setSending] = useState(false);
 
   const noEmail = !settings.reminderEmail.trim();
+  const verified = isReminderEmailVerified(settings);
 
   const mustDo = tasks
     .filter((t) => results.get(t.id)?.category === "must")
@@ -45,7 +47,27 @@ export default function ReminderButton({ settings, tasks, results }: Props) {
       ? Math.min(weekHours / settings.weeklyCapacityHours, 10)
       : 0;
 
+  // Button state derivation
+  const isDisabled = noEmail || !verified || sending;
+
+  let title: string;
+  let label: string;
+  if (noEmail) {
+    title = "Add your email in Settings first";
+    label = "Email me today's plan";
+  } else if (!verified) {
+    title = "Verify your email in Settings before sending";
+    label = "Verify email first";
+  } else if (sending) {
+    title = "Sending…";
+    label = "Sending…";
+  } else {
+    title = "Email me today's plan";
+    label = "Email me today's plan";
+  }
+
   const send = async () => {
+    if (isDisabled) return;
     setSending(true);
     try {
       const res = await fetch("/api/reminders", {
@@ -53,6 +75,7 @@ export default function ReminderButton({ settings, tasks, results }: Props) {
         headers: { "Content-Type": "application/json", "x-chronotriage-client": "1" },
         body: JSON.stringify({
           email: settings.reminderEmail.trim(),
+          verifiedToken: settings.verifiedEmailToken ?? "",
           date: format(new Date(), "yyyy-MM-dd"),
           mustDo,
           skipSuggestions,
@@ -61,6 +84,10 @@ export default function ReminderButton({ settings, tasks, results }: Props) {
       });
       if (res.status === 429) {
         showToast("Slow down a little and try again.");
+        return;
+      }
+      if (res.status === 403) {
+        showToast("Email not verified. Please verify your email in Settings.");
         return;
       }
       if (!res.ok) {
@@ -78,13 +105,19 @@ export default function ReminderButton({ settings, tasks, results }: Props) {
   return (
     <button
       onClick={send}
-      disabled={noEmail || sending}
-      title={noEmail ? "Sign in or add your email in Settings" : "Email me today's plan"}
-      className="btn-secondary gap-2 text-sm"
-      aria-label="Email me today's plan"
+      disabled={isDisabled}
+      title={title}
+      className={`btn-secondary gap-2 text-sm ${
+        !noEmail && !verified ? "opacity-70" : ""
+      }`}
+      aria-label={label}
     >
-      <Mail size={16} aria-hidden="true" />
-      {sending ? "Sending…" : "Email me today's plan"}
+      {!noEmail && !verified ? (
+        <ShieldAlert size={16} aria-hidden="true" className="text-amber-500" />
+      ) : (
+        <Mail size={16} aria-hidden="true" />
+      )}
+      {label}
     </button>
   );
 }

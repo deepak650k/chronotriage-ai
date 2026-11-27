@@ -21,6 +21,8 @@ export interface Settings {
   weeklyCapacityHours: number; // default 20, range 1–80
   dailyStudyHours: number;     // default 3, range 0.5–16
   reminderEmail: string;       // "" when not set
+  verifiedReminderEmail?: string; // normalized lowercase email that passed OTP check
+  verifiedEmailToken?: string;    // HMAC-signed verification token from /api/reminders/verify
   voiceEnabled: boolean;       // default true
   theme: "light" | "dark" | "system";
 }

@@ -1,8 +1,9 @@
-// app/api/reminders/route.ts – Forwards today's plan to Zapier Catch Hook
+// app/api/reminders/route.ts – Forwards today's plan to Zapier Catch Hook (verified email only)
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getClientIp, isRateLimited, isCsrfBlocked } from "@/lib/rateLimit";
+import { verifyEmailToken } from "@/lib/emailVerify";
 
 const Item = z.object({
   title: z.string().max(80),
@@ -11,7 +12,8 @@ const Item = z.object({
 });
 
 const Body = z.object({
-  email: z.string().email(),
+  email: z.string().email().max(254),
+  verifiedToken: z.string().min(10).max(512),
   date: z.string(),
   mustDo: z.array(Item).max(20),
   skipSuggestions: z.array(Item).max(20),
@@ -31,7 +33,16 @@ export async function POST(req: Request) {
 
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Please verify your email address in Settings first." },
+      { status: 400 }
+    );
+  }
+
+  const email = parsed.data.email.trim().toLowerCase();
+  const check = verifyEmailToken(email, parsed.data.verifiedToken);
+  if (!check.valid) {
+    return NextResponse.json({ error: check.reason }, { status: 403 });
   }
 
   const url = process.env.ZAPIER_WEBHOOK_URL;
@@ -46,7 +57,7 @@ export async function POST(req: Request) {
     const r = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(parsed.data),
+      body: JSON.stringify({ ...parsed.data, email }),
     });
     if (!r.ok) {
       return NextResponse.json(

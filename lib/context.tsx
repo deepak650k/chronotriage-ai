@@ -246,6 +246,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Reload the guest slot (blank or any pre-login guest data)
     const guestState = loadState(undefined);
     dispatch({ type: "HYDRATE", state: guestState, user: null });
+    // Clear email verification tokens so the next user starts unverified
+    dispatch({
+      type: "UPDATE_SETTINGS",
+      settings: { verifiedReminderEmail: "", verifiedEmailToken: "" },
+    });
   }, []);
 
   return (

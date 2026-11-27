@@ -23,6 +23,8 @@ export function defaultSettings(): Settings {
     weeklyCapacityHours: 20,
     dailyStudyHours: 3,
     reminderEmail: "",
+    verifiedReminderEmail: "",
+    verifiedEmailToken: "",
     voiceEnabled: true,
     theme: "system",
   };
@@ -30,6 +32,16 @@ export function defaultSettings(): Settings {
 
 export function defaultState(): AppState {
   return { version: 1, tasks: [], settings: defaultSettings() };
+}
+
+/** Returns true only when reminderEmail is non-empty and matches the verified address + token. */
+export function isReminderEmailVerified(settings: Settings): boolean {
+  const email = settings.reminderEmail.trim().toLowerCase();
+  if (!email) return false;
+  return Boolean(
+    settings.verifiedEmailToken &&
+      settings.verifiedReminderEmail?.trim().toLowerCase() === email
+  );
 }
 
 /** Loads app state for the given user (or guest if no userId). */

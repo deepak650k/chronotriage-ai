@@ -30,20 +30,24 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
         <div className="space-y-6">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/20">
+            Built for busy semesters · 100% private &amp; free
+          </span>
           <h1 className="text-[32px] leading-[36px] md:text-[44px] md:leading-[48px] font-bold text-[var(--text)] tracking-tight">
             Know what to do, what can wait, and what to drop.
           </h1>
           <p className="text-lg text-[var(--muted)]">
-            ChronoTriage AI turns your deadlines into a calm, prioritised plan, with a reason for every call.
+            Midterms, lab reports, and club deadlines colliding in the same week? ChronoTriage turns chaos into a calm, honest plan — with a plain-language reason for every call.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/app" className="btn-primary gap-2">
               Open the planner
               <ArrowRight size={18} aria-hidden="true" />
             </Link>
-            <a href="#how-it-works" className="btn-secondary">
-              See how it works
-            </a>
+            <button onClick={handleTryDemo} className="btn-secondary gap-1.5">
+              <Sparkles size={16} aria-hidden="true" />
+              Try with sample deadlines
+            </button>
           </div>
         </div>
 
@@ -97,27 +101,30 @@ export default function LandingPage() {
 
       {/* How it works */}
       <section id="how-it-works" className="space-y-6 scroll-mt-20">
-        <h2 className="text-2xl font-bold text-[var(--text)]">How it works</h2>
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold text-[var(--text)]">How it works</h2>
+          <p className="text-sm text-[var(--muted)]">Three simple steps — takes under a minute to set up your week.</p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="card p-5 space-y-2">
+          <div className="card p-5 space-y-2 transition-transform hover:-translate-y-0.5">
             <PlusCircle size={22} className="text-[var(--primary)]" aria-hidden="true" />
             <h3 className="font-semibold text-lg text-[var(--text)]">1. Add your deadlines</h3>
             <p className="text-sm text-[var(--muted)]">
-              Enter each task&apos;s due date, estimated hours, and an importance score from 1 to 10.
+              Use quick presets for assignments, exams, or labs — just due date, hours, and importance.
             </p>
           </div>
-          <div className="card p-5 space-y-2">
+          <div className="card p-5 space-y-2 transition-transform hover:-translate-y-0.5">
             <Sparkles size={22} className="text-[var(--primary)]" aria-hidden="true" />
-            <h3 className="font-semibold text-lg text-[var(--text)]">2. Get your triage</h3>
+            <h3 className="font-semibold text-lg text-[var(--text)]">2. Get clear triage</h3>
             <p className="text-sm text-[var(--muted)]">
               A clear, deterministic rule labels every task Must Do, Schedule Later, or Safe to Skip.
             </p>
           </div>
-          <div className="card p-5 space-y-2">
+          <div className="card p-5 space-y-2 transition-transform hover:-translate-y-0.5">
             <ShieldCheck size={22} className="text-[var(--primary)]" aria-hidden="true" />
-            <h3 className="font-semibold text-lg text-[var(--text)]">3. Stay ahead</h3>
+            <h3 className="font-semibold text-lg text-[var(--text)]">3. Protect your time</h3>
             <p className="text-sm text-[var(--muted)]">
-              Track your weekly load meter, get email reminders, and spot crunch weeks before they hit.
+              Watch your weekly study load, spot crunch weeks early, and stay ahead without burnout.
             </p>
           </div>
         </div>

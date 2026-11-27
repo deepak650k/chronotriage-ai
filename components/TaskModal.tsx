@@ -4,12 +4,24 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { X, AlertCircle, Trash2 } from "lucide-react";
+import { addDays, format } from "date-fns";
 import type { Category, Task } from "@/lib/types";
 import { useApp } from "@/lib/context";
 import { useToast } from "@/components/Toast";
 import { triage } from "@/lib/triage";
-import { cn } from "@/lib/utils";
+import { cn, importanceLabel } from "@/lib/utils";
 import ConfirmDialog from "./ConfirmDialog";
+
+const STUDY_PRESETS = [
+  { label: "Assignment", hours: "3", importance: 7, course: "" },
+  { label: "Exam / Quiz", hours: "5", importance: 9, course: "" },
+  { label: "Lab Report", hours: "4", importance: 7, course: "Lab" },
+  { label: "Reading", hours: "1", importance: 4, course: "" },
+  { label: "Club / Extra", hours: "2", importance: 3, course: "Club" },
+] as const;
+
+const QUICK_COURSES = ["Maths", "CS", "Physics", "English", "Science", "Club"];
+const QUICK_HOURS = ["0.5", "1", "2", "4", "6"];
 
 interface Props {
   open: boolean;
@@ -203,9 +215,16 @@ function TaskModalInner({
           className="bg-[var(--surface)] w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl shadow-2xl p-6 space-y-4 overflow-y-auto sm:max-h-[90vh]"
         >
           <div className="flex items-center justify-between">
-            <h2 id="modal-title" className="text-xl font-bold text-[var(--text)]">
-              {task ? "Edit task" : "Add task"}
-            </h2>
+            <div>
+              <h2 id="modal-title" className="text-xl font-bold text-[var(--text)]">
+                {task ? "Edit task" : "Add task"}
+              </h2>
+              {!task && (
+                <p className="text-xs text-[var(--muted)] mt-0.5">
+                  Pick a quick preset or fill in your own details.
+                </p>
+              )}
+            </div>
             <button
               onClick={onClose}
               aria-label="Close modal"
@@ -214,6 +233,28 @@ function TaskModalInner({
               <X size={20} aria-hidden="true" />
             </button>
           </div>
+
+          {!task && (
+            <div className="flex flex-wrap gap-1.5" aria-label="Quick study presets">
+              {STUDY_PRESETS.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() =>
+                    setForm((prev) => ({
+                      ...prev,
+                      estimatedHours: preset.hours,
+                      importance: preset.importance,
+                      course: prev.course || preset.course,
+                    }))
+                  }
+                  className="text-xs px-2.5 py-1.5 rounded-full border border-[var(--border)] bg-[var(--bg)] text-[var(--text)] hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors focus-ring"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <Field
@@ -248,6 +289,23 @@ function TaskModalInner({
                 className="input"
                 placeholder="e.g. Maths, Club, Personal"
               />
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {QUICK_COURSES.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setForm({ ...form, course: c })}
+                    className={cn(
+                      "text-[11px] px-2 py-0.5 rounded-md border transition-colors focus-ring",
+                      form.course === c
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-medium"
+                        : "border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]"
+                    )}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
             </Field>
 
             <Field
@@ -270,6 +328,31 @@ function TaskModalInner({
                   touched.has("dueDate") && errors.dueDate ? "dueDate-error" : undefined
                 }
               />
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {[
+                  { label: "Today", offset: 0 },
+                  { label: "Tomorrow", offset: 1 },
+                  { label: "+3 days", offset: 3 },
+                  { label: "Next week", offset: 7 },
+                ].map((d) => {
+                  const val = format(addDays(new Date(), d.offset), "yyyy-MM-dd");
+                  return (
+                    <button
+                      key={d.label}
+                      type="button"
+                      onClick={() => setForm({ ...form, dueDate: val })}
+                      className={cn(
+                        "text-[11px] px-2 py-0.5 rounded-md border transition-colors focus-ring",
+                        form.dueDate === val
+                          ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-medium"
+                          : "border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]"
+                      )}
+                    >
+                      {d.label}
+                    </button>
+                  );
+                })}
+              </div>
             </Field>
 
             <Field
@@ -300,12 +383,34 @@ function TaskModalInner({
                     : "estimatedHours-helper"
                 }
               />
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {QUICK_HOURS.map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => setForm({ ...form, estimatedHours: h })}
+                    className={cn(
+                      "text-[11px] px-2 py-0.5 rounded-md border transition-colors focus-ring",
+                      form.estimatedHours === h
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] font-medium"
+                        : "border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]"
+                    )}
+                  >
+                    {h}h
+                  </button>
+                ))}
+              </div>
             </Field>
 
             <div className="space-y-1">
-              <label htmlFor="importance" className="label">
-                Importance * — {form.importance}/10
-              </label>
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="importance" className="label">
+                  Importance * — {form.importance}/10
+                </label>
+                <span className="text-xs font-medium text-[var(--primary)]">
+                  {importanceLabel(form.importance)}
+                </span>
+              </div>
               <p className="text-xs text-[var(--muted)]" id="importance-helper">
                 10 = big graded weight, or others depend on it
               </p>

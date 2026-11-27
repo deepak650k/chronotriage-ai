@@ -2,12 +2,25 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Plus, Clock } from "lucide-react";
+import { Menu, X, Plus, Clock, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useApp } from "@/lib/context";
 import TaskModal from "./TaskModal";
+
+function usePrefersDark(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia("(prefers-color-scheme: dark)");
+      mq.addEventListener("change", cb);
+      return () => mq.removeEventListener("change", cb);
+    },
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
+    () => false
+  );
+}
 
 const LINKS = [
   { href: "/app", label: "Dashboard" },
@@ -19,12 +32,21 @@ const LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { state, updateSettings, isLoaded } = useApp();
+  const prefersDark = usePrefersDark();
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const menuContainerRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const isAppRoute = pathname.startsWith("/app");
+  const isDark =
+    state.settings.theme === "dark" ||
+    (state.settings.theme === "system" && prefersDark);
+
+  const toggleTheme = () => {
+    updateSettings({ theme: isDark ? "light" : "dark" });
+  };
 
   // Focus trap and Escape handling for mobile hamburger menu
   useEffect(() => {
@@ -90,8 +112,23 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Add task + hamburger */}
+          {/* Theme toggle + Add task + hamburger */}
           <div className="flex items-center gap-2 shrink-0">
+            {isLoaded && (
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="btn-secondary px-2.5"
+                aria-label={isDark ? "Switch to light study mode" : "Switch to dark study mode"}
+                title={isDark ? "Light study mode" : "Dark study mode"}
+              >
+                {isDark ? (
+                  <Sun size={18} aria-hidden="true" />
+                ) : (
+                  <Moon size={18} aria-hidden="true" />
+                )}
+              </button>
+            )}
             <button
               onClick={() => setModalOpen(true)}
               className="hidden sm:inline-flex btn-primary gap-1.5 text-sm whitespace-nowrap shrink-0"

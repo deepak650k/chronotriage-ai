@@ -8,7 +8,7 @@ import type { Category, Task } from "@/lib/types";
 import { useApp } from "@/lib/context";
 import { useToast } from "@/components/Toast";
 import { isOpen } from "@/lib/triage";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn, coursePillClass } from "@/lib/utils";
 import CategoryBadge from "@/components/CategoryBadge";
 import TaskModal from "@/components/TaskModal";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -224,7 +224,20 @@ export default function TasksPage() {
                           </div>
                         )}
                       </td>
-                      <td className="p-3 text-[var(--muted)]">{t.course || "—"}</td>
+                      <td className="p-3">
+                        {t.course ? (
+                          <span
+                            className={cn(
+                              "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border whitespace-nowrap",
+                              coursePillClass(t.course)
+                            )}
+                          >
+                            {t.course}
+                          </span>
+                        ) : (
+                          <span className="text-[var(--muted)]">—</span>
+                        )}
+                      </td>
                       <td className="p-3 text-[var(--muted)] whitespace-nowrap">
                         {formatDate(t.dueDate)}
                       </td>
@@ -333,8 +346,17 @@ export default function TasksPage() {
                     <h2 className="font-semibold text-[var(--text)]">{t.title}</h2>
                     {res && <CategoryBadge category={res.category} size="sm" />}
                   </div>
-                  <div className="text-xs text-[var(--muted)] flex flex-wrap gap-x-3 gap-y-1">
-                    {t.course && <span>{t.course}</span>}
+                  <div className="text-xs text-[var(--muted)] flex flex-wrap items-center gap-x-3 gap-y-1">
+                    {t.course && (
+                      <span
+                        className={cn(
+                          "inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border",
+                          coursePillClass(t.course)
+                        )}
+                      >
+                        {t.course}
+                      </span>
+                    )}
                     <span>{formatDate(t.dueDate)}</span>
                     <span>{t.estimatedHours} h</span>
                     <span>{t.importance}/10</span>

@@ -19,10 +19,10 @@ export default function LoadMeter({ hours, capacity }: Props) {
     : "bg-[var(--skip)]";
 
   const statusWord = over
-    ? "Over capacity"
+    ? "Crunch week"
     : amber
-    ? "Getting full"
-    : "Comfortable";
+    ? "Busy week ahead"
+    : "Room to breathe";
 
   return (
     <div className="card p-4 space-y-2">

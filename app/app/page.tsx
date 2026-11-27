@@ -91,6 +91,10 @@ export default function DashboardPage() {
 
   const displayed = filteredTasks.slice(0, 20);
   const hasMore = filteredTasks.length > 20;
+  const doneCount = state.tasks.filter((t) => t.status === "done").length;
+  const topFocusTask = sortedTasks.find(
+    (t) => triageResults.get(t.id)?.category === "must"
+  );
 
   return (
     <div className="max-w-[1120px] mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 space-y-6 pb-24 sm:pb-10">
@@ -100,8 +104,13 @@ export default function DashboardPage() {
           <h1 className="text-[28px] leading-[34px] font-bold text-[var(--text)]">
             {greeting(today)}.
           </h1>
-          <p className="text-sm text-[var(--muted)]">
-            {format(today, "EEE d MMM yyyy")}
+          <p className="text-sm text-[var(--muted)] flex flex-wrap items-center gap-2">
+            <span>{format(today, "EEE d MMM yyyy")}</span>
+            {doneCount > 0 && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--skip-bg)] text-[var(--skip)]">
+                {doneCount} finished — nice momentum!
+              </span>
+            )}
           </p>
         </div>
         <div className="flex flex-wrap items-start gap-2">
@@ -157,6 +166,32 @@ export default function DashboardPage() {
               capacity={state.settings.weeklyCapacityHours}
             />
           </div>
+
+          {/* Focus Spotlight for students */}
+          {topFocusTask ? (
+            <div className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--primary)]/6 border-[var(--primary)]/20">
+              <div className="space-y-0.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[var(--primary)]">
+                  Start here next
+                </p>
+                <p className="text-sm font-medium text-[var(--text)]">
+                  Focus on <span className="font-semibold">{topFocusTask.title}</span> (~{topFocusTask.estimatedHours} h) before anything else.
+                </p>
+              </div>
+              <button
+                onClick={() => setEditingTask(topFocusTask)}
+                className="btn-secondary text-xs min-h-[38px] px-3 shrink-0 self-start sm:self-center"
+              >
+                Open task
+              </button>
+            </div>
+          ) : (
+            <div className="card p-4 bg-[var(--skip-bg)]/50 border-[var(--skip)]/25">
+              <p className="text-sm font-medium text-[var(--skip)]">
+                No urgent fires right now — work ahead at your own pace or take a breather.
+              </p>
+            </div>
+          )}
 
           {/* Filter tabs */}
           <div

@@ -13,6 +13,7 @@ const CARDS = [
   {
     key: "must" as Category,
     label: "Must Do",
+    hint: "Start these first",
     Icon: Flame,
     bg: "bg-[var(--must-bg)]",
     text: "text-[var(--must)]",
@@ -21,6 +22,7 @@ const CARDS = [
   {
     key: "later" as Category,
     label: "Schedule Later",
+    hint: "Plan time ahead",
     Icon: Clock,
     bg: "bg-[var(--later-bg)]",
     text: "text-[var(--later)]",
@@ -29,6 +31,7 @@ const CARDS = [
   {
     key: "skip" as Category,
     label: "Safe to Skip",
+    hint: "Optional if packed",
     Icon: Leaf,
     bg: "bg-[var(--skip-bg)]",
     text: "text-[var(--skip)]",
@@ -39,12 +42,12 @@ const CARDS = [
 export default function SummaryCards({ counts, activeFilter, onFilter }: Props) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      {CARDS.map(({ key, label, Icon, bg, text, border }) => (
+      {CARDS.map(({ key, label, hint, Icon, bg, text, border }) => (
         <button
           key={key}
           onClick={() => onFilter(activeFilter === key ? "all" : key)}
           aria-pressed={activeFilter === key}
-          className={`card p-4 text-left transition-all focus-ring min-h-[44px] ${bg} border ${border} ${
+          className={`card p-4 text-left transition-all hover:-translate-y-0.5 focus-ring min-h-[44px] ${bg} border ${border} ${
             activeFilter === key ? "ring-2 ring-[var(--primary)]" : ""
           }`}
         >
@@ -54,7 +57,10 @@ export default function SummaryCards({ counts, activeFilter, onFilter }: Props) 
               {label}
             </span>
           </div>
-          <p className={`text-3xl font-bold mt-2 ${text}`}>{counts[key]}</p>
+          <div className="flex items-baseline justify-between gap-2 mt-2">
+            <p className={`text-3xl font-bold ${text}`}>{counts[key]}</p>
+            <span className="text-[11px] font-medium text-[var(--muted)]">{hint}</span>
+          </div>
         </button>
       ))}
     </div>

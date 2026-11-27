@@ -8,7 +8,7 @@ import type { Category, Task, TriageResult } from "@/lib/types";
 import { useApp } from "@/lib/context";
 import { useToast } from "@/components/Toast";
 import CategoryBadge from "./CategoryBadge";
-import { cn, formatDueText, formatDate } from "@/lib/utils";
+import { cn, formatDueText, formatDate, coursePillClass } from "@/lib/utils";
 
 const BORDER_COLORS: Record<Category, string> = {
   must: "border-l-[var(--must)]",
@@ -113,12 +113,23 @@ export default function TaskCard({ task, result, onEdit }: Props) {
 
       {/* Title + meta */}
       <h3 className="font-semibold text-[var(--text)] leading-snug">{task.title}</h3>
-      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[13px] text-[var(--muted)]">
-        {task.course && <span>{task.course}</span>}
+      <div className="flex flex-wrap items-center gap-2 text-[13px] text-[var(--muted)]">
+        {task.course && (
+          <span
+            className={cn(
+              "inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium border",
+              coursePillClass(task.course)
+            )}
+          >
+            {task.course}
+          </span>
+        )}
         <span>
           {formatDueText(result.days)} · {formatDate(task.dueDate)}
         </span>
-        <span>{task.estimatedHours} h</span>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs bg-[var(--bg)] border border-[var(--border)] text-[var(--text)]">
+          ~{task.estimatedHours} h
+        </span>
         <span>Importance {task.importance}/10</span>
       </div>
 

@@ -124,7 +124,7 @@ export default function DashboardPage() {
       {openTasks.length === 0 ? (
         <EmptyState
           title="Nothing on your plate yet."
-          body="Nothing on your plate yet. Add your first task, or load demo data to see how ChronoTriage works."
+          body="Add your first task, or load demo data to see how ChronoTriage works."
           action={
             <div className="flex flex-wrap justify-center gap-3">
               <button

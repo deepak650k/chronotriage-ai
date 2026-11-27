@@ -27,7 +27,7 @@ export default function AboutPage() {
           Triage labels are computed by plain, deterministic code — never guessed by an LLM — so every recommendation is repeatable and explainable.
         </p>
 
-        <div className="p-3 rounded-lg bg-[var(--bg)] border border-[var(--border)] font-mono text-sm text-[var(--text)]">
+        <div className="p-3 rounded-lg bg-[var(--bg)] border border-[var(--border)] font-mono text-sm text-[var(--text)] overflow-x-auto">
           score = (Urgency × Importance) / (1 + estimatedHours / 4)
         </div>
 

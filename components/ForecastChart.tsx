@@ -10,7 +10,11 @@ interface Props {
 
 export default function ForecastChart({ weeks }: Props) {
   const capacity = weeks[0]?.capacity ?? 20;
-  const maxHours = Math.max(capacity * 1.4, ...weeks.map((w) => w.hours), 10);
+  const maxHours = Math.max(
+    capacity * 1.4,
+    ...weeks.map((w) => w.hours * 1.15),
+    10
+  );
   const capacityLinePct = Math.min((capacity / maxHours) * 100, 100);
 
   return (
@@ -26,51 +30,62 @@ export default function ForecastChart({ weeks }: Props) {
         </div>
 
         <div
-          className="relative h-56 flex items-end justify-around gap-3 pt-6 pb-2 border-b border-[var(--border)]"
           role="img"
           aria-label="4-week workload bar chart comparing planned hours to weekly capacity"
         >
-          {/* Dashed capacity reference line */}
-          <div
-            className="absolute left-0 right-0 border-t-2 border-dashed border-[var(--text)]/50 pointer-events-none z-10"
-            style={{ bottom: `calc(${capacityLinePct}% * 0.85 + 8px)` }}
-          >
-            <span className="text-[10px] font-medium bg-[var(--surface)] px-1 text-[var(--muted)] -top-4 relative">
-              {capacity}h cap
-            </span>
-          </div>
+          {/* Plot area: bars and capacity line share the exact same 0..maxHours coordinate box */}
+          <div className="relative h-48 flex items-end justify-around gap-3 border-b border-[var(--border)]">
+            {/* Dashed capacity reference line */}
+            <div
+              className="absolute left-0 right-0 border-t-2 border-dashed border-[var(--text)]/50 pointer-events-none z-10"
+              style={{ bottom: `${capacityLinePct}%` }}
+            >
+              <span className="text-[10px] font-medium bg-[var(--surface)] px-1 text-[var(--muted)] -top-4 relative">
+                {capacity}h cap
+              </span>
+            </div>
 
-          {weeks.map((w, idx) => {
-            const heightPct = Math.min((w.hours / maxHours) * 100, 100);
-            return (
-              <div
-                key={w.weekStart}
-                className="flex-1 flex flex-col items-center justify-end h-full gap-1.5"
-              >
-                <div className="flex items-center gap-1 text-xs font-semibold text-[var(--text)]">
-                  {w.crunch && (
-                    <AlertTriangle
-                      size={13}
-                      className="text-[var(--must)] shrink-0"
-                      aria-hidden="true"
-                    />
-                  )}
-                  <span>{w.hours}h</span>
-                </div>
-                <div className="w-full max-w-[64px] flex-1 flex items-end">
+            {weeks.map((w) => {
+              const heightPct = Math.min((w.hours / maxHours) * 100, 100);
+              return (
+                <div
+                  key={w.weekStart}
+                  className="flex-1 flex flex-col items-center justify-end h-full"
+                >
+                  <div className="flex items-center gap-1 text-xs font-semibold text-[var(--text)] mb-1">
+                    {w.crunch && (
+                      <AlertTriangle
+                        size={13}
+                        className="text-[var(--must)] shrink-0"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span>{w.hours}h</span>
+                  </div>
                   <div
-                    className={`w-full rounded-t-lg transition-all duration-300 ${
+                    className={`w-full max-w-[64px] rounded-t-lg transition-all duration-300 ${
                       w.crunch ? "bg-[var(--must)]" : "bg-[var(--primary)]"
                     }`}
-                    style={{ height: `${Math.max(heightPct * 0.85, w.hours > 0 ? 6 : 2)}%` }}
+                    style={{
+                      height: `${Math.max(heightPct, w.hours > 0 ? 4 : 1)}%`,
+                    }}
                   />
                 </div>
-                <span className="text-xs text-[var(--muted)] text-center">
-                  W{idx + 1} · {formatDate(w.weekStart).slice(0, 6)}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {/* X-axis week labels */}
+          <div className="flex justify-around gap-3 pt-2">
+            {weeks.map((w, idx) => (
+              <span
+                key={w.weekStart}
+                className="flex-1 text-xs text-[var(--muted)] text-center"
+              >
+                W{idx + 1} · {formatDate(w.weekStart).slice(0, 6)}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, Pencil, CheckCircle, RotateCcw, Trash2, Plus } from "lucide-react";
+import { Search, Pencil, CheckCircle, RotateCcw, Trash2 } from "lucide-react";
 import type { Category, Task } from "@/lib/types";
 import { useApp } from "@/lib/context";
 import { useToast } from "@/components/Toast";
@@ -30,7 +30,6 @@ export default function TasksPage() {
   const [sortBy, setSortBy] = useState<"dueDate" | "importance" | "score">("dueDate");
 
   const [editingTask, setEditingTask] = useState<Task | undefined>();
-  const [addOpen, setAddOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
   const [overrideTargetId, setOverrideTargetId] = useState<string | null>(null);
 
@@ -84,20 +83,14 @@ export default function TasksPage() {
 
   return (
     <div className="max-w-[1120px] mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8 space-y-6 pb-24 sm:pb-10">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-[28px] leading-[34px] font-bold text-[var(--text)]">
-            All tasks
-          </h1>
-          <p className="text-sm text-[var(--muted)]">
-            {state.tasks.length} total task{state.tasks.length !== 1 ? "s" : ""} ·{" "}
-            {Math.round(openHours * 10) / 10} open hours
-          </p>
-        </div>
-        <button onClick={() => setAddOpen(true)} className="btn-primary gap-1.5 self-start">
-          <Plus size={18} aria-hidden="true" />
-          Add task
-        </button>
+      <div>
+        <h1 className="text-[28px] leading-[34px] font-bold text-[var(--text)]">
+          All tasks
+        </h1>
+        <p className="text-sm text-[var(--muted)]">
+          {state.tasks.length} total task{state.tasks.length !== 1 ? "s" : ""} ·{" "}
+          {Math.round(openHours * 10) / 10} open hours
+        </p>
       </div>
 
       {/* Filters */}
@@ -204,7 +197,7 @@ export default function TasksPage() {
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block card overflow-x-auto">
+          <div className="hidden lg:block card overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] text-xs uppercase text-[var(--muted)]">
@@ -330,8 +323,8 @@ export default function TasksPage() {
             </table>
           </div>
 
-          {/* Mobile cards */}
-          <div className="md:hidden space-y-3">
+          {/* Mobile & tablet cards */}
+          <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3">
             {filtered.map((t) => {
               const res = triageResults.get(t.id);
               return (
@@ -391,10 +384,9 @@ export default function TasksPage() {
       )}
 
       <TaskModal
-        open={addOpen || Boolean(editingTask)}
+        open={Boolean(editingTask)}
         task={editingTask}
         onClose={() => {
-          setAddOpen(false);
           setEditingTask(undefined);
         }}
       />

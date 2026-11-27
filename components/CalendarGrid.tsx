@@ -59,7 +59,7 @@ export default function CalendarGrid({
   const isSmall = useIsSmallScreen();
   const [viewOverride, setViewOverride] = useState<"month" | "week" | null>(null);
   const view = viewOverride ?? (isSmall ? "week" : "month");
-  const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const cellRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const today = new Date();
 
   const openTasks = tasks.filter(
@@ -100,12 +100,7 @@ export default function CalendarGrid({
     setCurrent(new Date(current.getFullYear(), current.getMonth() + 1, 1));
   const goToday = () => setCurrent(new Date());
 
-  const handleCellKeyDown = (e: React.KeyboardEvent, idx: number, iso: string) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onDayClick(iso);
-      return;
-    }
+  const handleCellKeyDown = (e: React.KeyboardEvent, idx: number) => {
     let nextIdx = -1;
     if (e.key === "ArrowRight") nextIdx = idx + 1;
     else if (e.key === "ArrowLeft") nextIdx = idx - 1;
@@ -224,24 +219,26 @@ export default function CalendarGrid({
           return (
             <div
               key={iso}
-              ref={(el) => {
-                cellRefs.current[idx] = el;
-              }}
               className={cn(
-                "bg-[var(--surface)] p-1.5 sm:p-2 min-h-[96px] cursor-pointer hover:bg-[var(--bg)] transition-colors focus-ring",
+                "relative bg-[var(--surface)] p-1.5 sm:p-2 min-h-[96px] hover:bg-[var(--bg)] transition-colors",
                 !isCurrentMonth && "opacity-45",
                 isToday && "ring-2 ring-inset ring-[var(--primary)]",
                 dayTint(hours)
               )}
-              onClick={() => onDayClick(iso)}
-              role="button"
-              tabIndex={0}
-              aria-label={`${format(d, "d MMMM yyyy")}, ${dayTasks.length} task${
-                dayTasks.length !== 1 ? "s" : ""
-              }, ${hours} hours`}
-              onKeyDown={(e) => handleCellKeyDown(e, idx, iso)}
             >
-              <div className="flex justify-between items-center mb-1">
+              <button
+                type="button"
+                ref={(el) => {
+                  cellRefs.current[idx] = el;
+                }}
+                onClick={() => onDayClick(iso)}
+                onKeyDown={(e) => handleCellKeyDown(e, idx)}
+                aria-label={`${format(d, "d MMMM yyyy")}, ${dayTasks.length} task${
+                  dayTasks.length !== 1 ? "s" : ""
+                }, ${hours} hours`}
+                className="absolute inset-0 w-full h-full focus-ring cursor-pointer"
+              />
+              <div className="relative z-10 pointer-events-none flex justify-between items-center mb-1">
                 <span
                   className={cn(
                     "text-xs font-medium",
@@ -258,19 +255,17 @@ export default function CalendarGrid({
                   </span>
                 )}
               </div>
-              <div className="space-y-1">
+              <div className="relative z-10 pointer-events-none space-y-1">
                 {visible.map((t, cIdx) => {
                   const res = results.get(t.id);
                   const cat = res?.category ?? "later";
                   return (
                     <button
                       key={t.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onChipClick(t);
-                      }}
+                      type="button"
+                      onClick={() => onChipClick(t)}
                       className={cn(
-                        "w-full text-left text-[11px] px-1.5 py-0.5 rounded flex items-center gap-1 focus-ring font-medium",
+                        "pointer-events-auto w-full text-left text-[11px] px-1.5 py-0.5 rounded flex items-center gap-1 focus-ring font-medium",
                         cIdx === 2 && "hidden lg:flex",
                         CATEGORY_CHIP[cat]
                       )}

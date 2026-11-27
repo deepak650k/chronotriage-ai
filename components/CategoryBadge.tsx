@@ -38,7 +38,7 @@ export default function CategoryBadge({ category, size = "md" }: Props) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full font-semibold tracking-wide uppercase",
+        "inline-flex items-center gap-1 rounded-full font-semibold tracking-wide uppercase whitespace-nowrap",
         size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-2.5 py-1 text-[12px]",
         className
       )}

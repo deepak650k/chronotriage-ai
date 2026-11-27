@@ -59,27 +59,27 @@ export default function Navbar() {
     <>
       <header className="bg-[var(--surface)] border-b border-[var(--border)] sticky top-0 z-40">
         <nav
-          className="max-w-[1120px] mx-auto px-4 md:px-6 lg:px-8 h-16 flex items-center justify-between"
+          className="max-w-[1120px] mx-auto px-4 md:px-6 lg:px-8 h-16 flex items-center justify-between gap-3"
           aria-label="Main navigation"
         >
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 font-heading font-bold text-[var(--primary)] text-lg focus-ring rounded-lg px-1 py-1 min-h-[44px]"
+            className="flex items-center gap-2 font-heading font-bold text-[var(--primary)] text-lg focus-ring rounded-lg px-1 py-1 min-h-[44px] whitespace-nowrap shrink-0"
           >
             <Clock size={20} aria-hidden="true" />
             ChronoTriage
           </Link>
 
           {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-3 lg:gap-6">
             {LINKS.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 aria-current={pathname === l.href ? "page" : undefined}
                 className={cn(
-                  "text-sm font-medium transition-colors focus-ring rounded-lg px-2 py-2 min-h-[44px] flex items-center",
+                  "text-sm font-medium transition-colors focus-ring rounded-lg px-2 py-2 min-h-[44px] flex items-center whitespace-nowrap",
                   pathname === l.href
                     ? "text-[var(--primary)] border-b-2 border-[var(--primary)] rounded-b-none"
                     : "text-[var(--muted)] hover:text-[var(--text)]"
@@ -91,10 +91,10 @@ export default function Navbar() {
           </div>
 
           {/* Add task + hamburger */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setModalOpen(true)}
-              className="hidden sm:inline-flex btn-primary gap-1.5 text-sm"
+              className="hidden sm:inline-flex btn-primary gap-1.5 text-sm whitespace-nowrap shrink-0"
               aria-label="Add new task"
             >
               <Plus size={18} aria-hidden="true" />

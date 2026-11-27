@@ -11,7 +11,7 @@ import React, {
   useCallback,
 } from "react";
 import type { AppState, AppAction, Task, Settings, TriageResult } from "./types";
-import { defaultState, loadState, saveState, resetState } from "./storage";
+import { defaultState, loadState, saveState, resetState, migrateGuestToUser } from "./storage";
 import {
   getSessionUser,
   clearSessionUser,
@@ -137,16 +137,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Load from storage on mount (client only) to avoid SSR/client hydration mismatch
   useEffect(() => {
-    const loaded = loadState();
     const sessionUser = getSessionUser();
+    // Load the correct data slot for the user (or guest slot if no session)
+    const loaded = loadState(sessionUser?.id);
     dispatch({ type: "HYDRATE", state: loaded, user: sessionUser });
   }, []);
 
   // Save to storage whenever state changes (after initial load)
+  // Always write to the slot that matches whoever is currently signed in.
   useEffect(() => {
     if (!isLoaded) return;
-    saveState(state);
-  }, [state, isLoaded]);
+    saveState(state, user?.id);
+  }, [state, isLoaded, user?.id]);
 
   // Apply light/dark theme class on <html>
   useEffect(() => {
@@ -180,9 +182,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [state.tasks]);
 
   const reset = useCallback(() => {
-    resetState();
+    // Reset only the current user's slot (or guest slot if not signed in)
+    resetState(user?.id);
     dispatch({ type: "RESET" });
-  }, []);
+  }, [user?.id]);
 
   const addTask = useCallback((taskData: Omit<Task, "id" | "createdAt">) => {
     const task: Task = {
@@ -210,7 +213,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     async (email: string, password: string, useForReminders = true) => {
       const res = await loginAccount({ email, password });
       if (!res.ok) return res;
-      dispatch({ type: "SET_USER", user: res.user });
+      // Load this user's private data slot and hydrate the store
+      const userState = loadState(res.user.id);
+      dispatch({ type: "HYDRATE", state: userState, user: res.user });
       if (useForReminders) {
         dispatch({ type: "UPDATE_SETTINGS", settings: { reminderEmail: res.user.email } });
       }
@@ -223,7 +228,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     async (name: string, email: string, password: string, useForReminders = true) => {
       const res = await registerAccount({ name, email, password });
       if (!res.ok) return res;
-      dispatch({ type: "SET_USER", user: res.user });
+      // On first registration: carry any guest tasks into the new user's slot
+      migrateGuestToUser(res.user.id);
+      // Now load from the (possibly migrated) user slot
+      const userState = loadState(res.user.id);
+      dispatch({ type: "HYDRATE", state: userState, user: res.user });
       if (useForReminders) {
         dispatch({ type: "UPDATE_SETTINGS", settings: { reminderEmail: res.user.email } });
       }
@@ -234,11 +243,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     clearSessionUser();
-    if (user && state.settings.reminderEmail === user.email) {
-      dispatch({ type: "UPDATE_SETTINGS", settings: { reminderEmail: "" } });
-    }
-    dispatch({ type: "SET_USER", user: null });
-  }, [user, state.settings.reminderEmail]);
+    // Reload the guest slot (blank or any pre-login guest data)
+    const guestState = loadState(undefined);
+    dispatch({ type: "HYDRATE", state: guestState, user: null });
+  }, []);
 
   return (
     <AppContext.Provider

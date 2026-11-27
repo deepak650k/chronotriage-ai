@@ -12,6 +12,13 @@ import React, {
 } from "react";
 import type { AppState, AppAction, Task, Settings, TriageResult } from "./types";
 import { defaultState, loadState, saveState, resetState } from "./storage";
+import {
+  getSessionUser,
+  clearSessionUser,
+  loginAccount,
+  registerAccount,
+  type UserProfile,
+} from "./auth";
 import { triage } from "./triage";
 import { createDemoTasks } from "./demoData";
 
@@ -19,13 +26,25 @@ interface StoreState {
   app: AppState;
   isLoaded: boolean;
   today: Date | null;
+  user: UserProfile | null;
 }
 
-function reducer(store: StoreState, action: AppAction): StoreState {
+type StoreAction =
+  | (AppAction & { user?: UserProfile | null })
+  | { type: "SET_USER"; user: UserProfile | null };
+
+function reducer(store: StoreState, action: StoreAction): StoreState {
   const state = store.app;
   switch (action.type) {
     case "HYDRATE":
-      return { app: action.state, isLoaded: true, today: new Date() };
+      return {
+        app: action.state,
+        isLoaded: true,
+        today: new Date(),
+        user: action.user ?? null,
+      };
+    case "SET_USER":
+      return { ...store, user: action.user };
     case "ADD_TASK":
       return { ...store, app: { ...state, tasks: [...state.tasks, action.task] } };
     case "UPDATE_TASK":
@@ -88,6 +107,19 @@ interface AppContextValue {
   updateTask: (task: Task) => void;
   deleteTask: (id: string) => void;
   updateSettings: (settings: Partial<Settings>) => void;
+  user: UserProfile | null;
+  login: (
+    email: string,
+    password: string,
+    useForReminders?: boolean
+  ) => Promise<{ ok: true; user: UserProfile } | { ok: false; error: string }>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    useForReminders?: boolean
+  ) => Promise<{ ok: true; user: UserProfile } | { ok: false; error: string }>;
+  logout: () => void;
   isLoaded: boolean;
   today: Date | null;
 }
@@ -99,13 +131,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     app: defaultState(),
     isLoaded: false,
     today: null,
+    user: null,
   }));
-  const { app: state, isLoaded, today } = store;
+  const { app: state, isLoaded, today, user } = store;
 
   // Load from storage on mount (client only) to avoid SSR/client hydration mismatch
   useEffect(() => {
     const loaded = loadState();
-    dispatch({ type: "HYDRATE", state: loaded });
+    const sessionUser = getSessionUser();
+    dispatch({ type: "HYDRATE", state: loaded, user: sessionUser });
   }, []);
 
   // Save to storage whenever state changes (after initial load)
@@ -172,6 +206,37 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "UPDATE_SETTINGS", settings });
   }, []);
 
+  const login = useCallback(
+    async (email: string, password: string, useForReminders = true) => {
+      const res = await loginAccount({ email, password });
+      if (!res.ok) return res;
+      dispatch({ type: "SET_USER", user: res.user });
+      if (useForReminders) {
+        dispatch({ type: "UPDATE_SETTINGS", settings: { reminderEmail: res.user.email } });
+      }
+      return res;
+    },
+    []
+  );
+
+  const register = useCallback(
+    async (name: string, email: string, password: string, useForReminders = true) => {
+      const res = await registerAccount({ name, email, password });
+      if (!res.ok) return res;
+      dispatch({ type: "SET_USER", user: res.user });
+      if (useForReminders) {
+        dispatch({ type: "UPDATE_SETTINGS", settings: { reminderEmail: res.user.email } });
+      }
+      return res;
+    },
+    []
+  );
+
+  const logout = useCallback(() => {
+    clearSessionUser();
+    dispatch({ type: "SET_USER", user: null });
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -184,6 +249,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateTask,
         deleteTask,
         updateSettings,
+        user,
+        login,
+        register,
+        logout,
         isLoaded,
         today,
       }}

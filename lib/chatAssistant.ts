@@ -33,6 +33,7 @@ export const WEBSITE_KNOWLEDGE_BASE = `WEBSITE PAGES & FEATURES:
 - Tasks (/app/tasks): Full list with 5 filters (search title, status, category, course, sort by due date/importance/score), inline label override, restore, and delete.
 - Forecast (/app/forecast): 4-week workload bar chart against weekly capacity line, accessible table, crunch-week warnings (>100% capacity), and start-early suggestions.
 - Settings (/app/settings): Weekly capacity hours (default 20 h), daily study hours (default 3 h), reminder email, voice briefing toggle, theme (Light, Dark, System), Load demo data, Export JSON backup, and Reset all data.
+- Login (/login): Optional browser student profile (Sign in / Create account) or guest mode; can auto-save your email for daily Zapier email reminders.
 - About (/about): Full scoring formula, urgency table, category rules, 3 team roles, tools used, privacy note, and limitations.
 - Add Task modal: Quick study presets (Assignment, Exam/Quiz, Lab Report, Reading, Club/Extra), quick course pills, due date shortcuts, effort pills, importance 1–10, and prerequisites ("Depends on").
 - Reminders & Extras: Zapier Catch Hook -> Gmail sends today's plan on button click; ElevenLabs speaks today's briefing; Gemini optionally rephrases explanations; tasks stay privately in browser localStorage (chronotriage:v1) with zero trackers.`;
@@ -174,9 +175,9 @@ const TOPIC_RULES: TopicRule[] = [
       "You stay in control: click 'Change label' on any task to override it to Must Do, Schedule Later, or Safe to Skip. You can clear overrides or undo skips anytime.",
   },
   {
-    keywords: ["privat", "data", "account", "login", "sign up", "store", "localstorage", "team", "built", "who made"],
+    keywords: ["privat", "data", "account", "login", "sign in", "sign up", "store", "localstorage", "team", "built", "who made"],
     answer: () =>
-      "No account is needed and there are zero trackers. Your tasks stay privately in your browser's localStorage (chronotriage:v1), and you can Export JSON in Settings anytime.",
+      "You can use ChronoTriage as a guest or create a browser profile on /login (which can auto-save your email for daily Zapier reminders). No trackers are used; tasks and salted passkeys stay privately in your browser's localStorage (chronotriage:v1), and you can Export JSON in Settings.",
   },
 ];
 

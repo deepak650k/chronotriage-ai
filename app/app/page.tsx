@@ -23,7 +23,7 @@ import TaskModal from "@/components/TaskModal";
 const CATEGORY_ORDER: Record<Category, number> = { must: 0, later: 1, skip: 2 };
 
 export default function DashboardPage() {
-  const { state, triageResults, loadDemo, isLoaded, today } = useApp();
+  const { state, triageResults, loadDemo, isLoaded, today, user } = useApp();
   const { showToast } = useToast();
   const [filter, setFilter] = useState<Category | "all">("all");
   const [editingTask, setEditingTask] = useState<Task | undefined>();
@@ -102,7 +102,7 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-[28px] leading-[34px] font-bold text-[var(--text)]">
-            {greeting(today)}.
+            {user ? `${greeting(today)}, ${user.name.split(" ")[0]}.` : `${greeting(today)}.`}
           </h1>
           <p className="text-sm text-[var(--muted)] flex flex-wrap items-center gap-2">
             <span>{format(today, "EEE d MMM yyyy")}</span>

@@ -243,7 +243,11 @@ export default function LandingPage() {
           <div className="card p-5 space-y-1.5">
             <h3 className="font-semibold text-[var(--text)]">Do I need an account?</h3>
             <p className="text-sm text-[var(--muted)]">
-              No account is needed in this version.
+              No — you can jump straight in as a guest, or{" "}
+              <Link href="/login" className="text-[var(--primary)] hover:underline">
+                sign in / create a profile
+              </Link>{" "}
+              to personalise your dashboard and auto-fill your email for daily Zapier reminders.
             </p>
           </div>
         </div>

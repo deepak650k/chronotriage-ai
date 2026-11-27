@@ -79,7 +79,7 @@ export default function ReminderButton({ settings, tasks, results }: Props) {
     <button
       onClick={send}
       disabled={noEmail || sending}
-      title={noEmail ? "Add your email in Settings" : "Email me today's plan"}
+      title={noEmail ? "Sign in or add your email in Settings" : "Email me today's plan"}
       className="btn-secondary gap-2 text-sm"
       aria-label="Email me today's plan"
     >

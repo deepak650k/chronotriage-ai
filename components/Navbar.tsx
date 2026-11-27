@@ -5,9 +5,10 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Plus, Clock, Sun, Moon } from "lucide-react";
+import { Menu, X, Plus, Clock, Sun, Moon, LogIn, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/lib/context";
+import { useToast } from "./Toast";
 import TaskModal from "./TaskModal";
 
 function usePrefersDark(): boolean {
@@ -32,7 +33,8 @@ const LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { state, updateSettings, isLoaded } = useApp();
+  const { state, updateSettings, isLoaded, user, logout } = useApp();
+  const { showToast } = useToast();
   const prefersDark = usePrefersDark();
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -94,14 +96,14 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-3 lg:gap-6">
+          <div className="hidden md:flex items-center gap-1.5 lg:gap-5">
             {LINKS.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 aria-current={pathname === l.href ? "page" : undefined}
                 className={cn(
-                  "text-sm font-medium transition-colors focus-ring rounded-lg px-2 py-2 min-h-[44px] flex items-center whitespace-nowrap",
+                  "text-sm font-medium transition-colors focus-ring rounded-lg px-1.5 lg:px-2 py-2 min-h-[44px] flex items-center whitespace-nowrap",
                   pathname === l.href
                     ? "text-[var(--primary)] border-b-2 border-[var(--primary)] rounded-b-none"
                     : "text-[var(--muted)] hover:text-[var(--text)]"
@@ -112,7 +114,7 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Theme toggle + Add task + hamburger */}
+          {/* Theme toggle + Auth + Add task + hamburger */}
           <div className="flex items-center gap-2 shrink-0">
             {isLoaded && (
               <button
@@ -129,6 +131,45 @@ export default function Navbar() {
                 )}
               </button>
             )}
+            {isLoaded &&
+              (user ? (
+                <div className="hidden sm:flex items-center gap-1.5">
+                  <Link
+                    href="/login"
+                    aria-label={`Account: ${user.name}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 min-h-[40px] rounded-xl text-xs font-medium bg-[var(--bg)] border border-[var(--border)] text-[var(--text)] hover:border-[var(--primary)] focus-ring max-w-[130px]"
+                    title={`Signed in as ${user.email}`}
+                  >
+                    <User size={15} className="text-[var(--primary)] shrink-0" aria-hidden="true" />
+                    <span className="hidden lg:inline truncate">{user.name.split(" ")[0]}</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      logout();
+                      showToast("Signed out.");
+                    }}
+                    className="btn-secondary px-2.5"
+                    aria-label="Sign out"
+                    title="Sign out"
+                  >
+                    <LogOut size={16} aria-hidden="true" />
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  aria-label="Sign in"
+                  title="Sign in"
+                  className={cn(
+                    "hidden sm:inline-flex btn-secondary gap-1.5 text-sm px-2.5 lg:px-3 whitespace-nowrap",
+                    pathname === "/login" && "border-[var(--primary)] text-[var(--primary)]"
+                  )}
+                >
+                  <LogIn size={16} aria-hidden="true" />
+                  <span className="hidden lg:inline">Sign in</span>
+                </Link>
+              ))}
             <button
               onClick={() => setModalOpen(true)}
               className="hidden sm:inline-flex btn-primary gap-1.5 text-sm whitespace-nowrap shrink-0"
@@ -175,6 +216,30 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
+            {isLoaded &&
+              (user ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    setMenuOpen(false);
+                    showToast("Signed out.");
+                  }}
+                  className="w-full flex items-center gap-2 px-3 min-h-[44px] rounded-lg text-sm font-medium text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--bg)] focus-ring"
+                >
+                  <LogOut size={16} aria-hidden="true" />
+                  <span>Sign out ({user.name.split(" ")[0]})</span>
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 min-h-[44px] rounded-lg text-sm font-medium text-[var(--primary)] hover:bg-[var(--bg)] focus-ring"
+                >
+                  <LogIn size={16} aria-hidden="true" />
+                  <span>Sign in</span>
+                </Link>
+              ))}
             <button
               onClick={() => {
                 setMenuOpen(false);

@@ -243,7 +243,7 @@ export default function CalendarGrid({
                   className={cn(
                     "text-xs font-medium",
                     isToday
-                      ? "bg-[var(--primary)] text-white dark:text-[#0B1020] w-6 h-6 rounded-full flex items-center justify-center font-bold"
+                      ? "bg-[var(--primary)] text-[var(--primary-fg)] w-6 h-6 rounded-full flex items-center justify-center font-bold"
                       : "text-[var(--text)]"
                   )}
                 >
@@ -340,7 +340,7 @@ function Toolbar({
             className={cn(
               "text-sm min-h-[44px] px-4 rounded-lg capitalize font-medium focus-ring",
               view === v
-                ? "bg-[var(--primary)] text-white dark:text-[#0B1020]"
+                ? "bg-[var(--primary)] text-[var(--primary-fg)]"
                 : "btn-secondary"
             )}
             aria-pressed={view === v}

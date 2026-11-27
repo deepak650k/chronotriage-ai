@@ -75,7 +75,7 @@ export default function SettingsPage() {
                 aria-pressed={state.settings.theme === theme}
                 className={`min-h-[44px] px-4 rounded-lg text-sm capitalize font-medium focus-ring ${
                   state.settings.theme === theme
-                    ? "bg-[var(--primary)] text-white dark:text-[#0B1020]"
+                    ? "bg-[var(--primary)] text-[var(--primary-fg)]"
                     : "btn-secondary"
                 }`}
               >

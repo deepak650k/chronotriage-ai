@@ -210,7 +210,7 @@ export default function ChronoBot() {
                 <div
                   className={
                     m.role === "user"
-                      ? "max-w-[85%] rounded-2xl rounded-br-sm px-3.5 py-2 text-sm bg-[var(--primary)] text-white dark:text-[#0B1020]"
+                      ? "max-w-[85%] rounded-2xl rounded-br-sm px-3.5 py-2 text-sm bg-[var(--primary)] text-[var(--primary-fg)]"
                       : "max-w-[88%] rounded-2xl rounded-bl-sm px-3.5 py-2 text-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--text)]"
                   }
                 >

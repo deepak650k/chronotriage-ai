@@ -214,7 +214,7 @@ export default function DashboardPage() {
                 onClick={() => setFilter(tab.key)}
                 className={`min-h-[40px] px-4 rounded-lg text-sm font-medium transition-colors focus-ring ${
                   filter === tab.key
-                    ? "bg-[var(--primary)] text-white dark:text-[#0B1020]"
+                    ? "bg-[var(--primary)] text-[var(--primary-fg)]"
                     : "bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]"
                 }`}
               >

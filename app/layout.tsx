@@ -6,6 +6,7 @@ import { AppProvider } from "@/lib/context";
 import { ToastProvider } from "@/components/Toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ChronoBot from "@/components/ChronoBot";
 import { Suspense } from "react";
 
 const spaceGrotesk = Space_Grotesk({
@@ -54,6 +55,7 @@ export default function RootLayout({
             </Suspense>
             <main className="flex-1">{children}</main>
             <Footer />
+            {!(botpressInject && botpressConfig) ? <ChronoBot /> : null}
           </ToastProvider>
         </AppProvider>
 

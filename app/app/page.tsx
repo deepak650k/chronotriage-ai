@@ -17,6 +17,7 @@ import TaskCard from "@/components/TaskCard";
 import SkipPanel from "@/components/SkipPanel";
 import EmptyState from "@/components/EmptyState";
 import ReminderButton from "@/components/ReminderButton";
+import BriefingPlayer from "@/components/BriefingPlayer";
 import TaskModal from "@/components/TaskModal";
 
 const CATEGORY_ORDER: Record<Category, number> = { must: 0, later: 1, skip: 2 };
@@ -103,12 +104,20 @@ export default function DashboardPage() {
             {format(today, "EEE d MMM yyyy")}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-start gap-2">
           <ReminderButton
             settings={state.settings}
             tasks={state.tasks}
             results={triageResults}
           />
+          {state.settings.voiceEnabled && (
+            <BriefingPlayer
+              settings={state.settings}
+              tasks={state.tasks}
+              results={triageResults}
+              today={today}
+            />
+          )}
         </div>
       </div>
 

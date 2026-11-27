@@ -24,6 +24,7 @@ interface FormData {
   dueDate: string;
   estimatedHours: string;
   importance: number;
+  dependsOn: string[];
   notes: string;
   userOverride: Category | "";
 }
@@ -81,6 +82,7 @@ function TaskModalInner({
           dueDate: task.dueDate,
           estimatedHours: String(task.estimatedHours),
           importance: task.importance,
+          dependsOn: task.dependsOn,
           notes: task.notes,
           userOverride: task.userOverride ?? "",
         }
@@ -90,6 +92,7 @@ function TaskModalInner({
           dueDate: defaultDate ?? new Date().toISOString().split("T")[0],
           estimatedHours: "2",
           importance: 5,
+          dependsOn: [],
           notes: "",
           userOverride: "",
         }
@@ -159,7 +162,7 @@ function TaskModalInner({
       estimatedHours: Math.round(parseFloat(form.estimatedHours) * 2) / 2,
       importance: form.importance,
       status: task?.status ?? ("todo" as const),
-      dependsOn: task?.dependsOn ?? [],
+      dependsOn: form.dependsOn,
       notes: form.notes.trim(),
       userOverride: form.userOverride === "" ? null : (form.userOverride as Category),
     };
@@ -334,6 +337,49 @@ function TaskModalInner({
                 className="input resize-none py-2"
               />
             </Field>
+
+            {state.tasks.some(
+              (t) =>
+                t.id !== task?.id &&
+                (t.status === "todo" || t.status === "in_progress")
+            ) && (
+              <fieldset className="space-y-1.5">
+                <legend className="label">Depends on (prerequisites)</legend>
+                <p className="text-xs text-[var(--muted)]">
+                  Tasks others depend on are never marked Safe to Skip.
+                </p>
+                <div className="max-h-28 overflow-y-auto border border-[var(--border)] rounded-lg p-2 space-y-1 bg-[var(--bg)]">
+                  {state.tasks
+                    .filter(
+                      (t) =>
+                        t.id !== task?.id &&
+                        (t.status === "todo" || t.status === "in_progress")
+                    )
+                    .map((other) => {
+                      const checked = form.dependsOn.includes(other.id);
+                      return (
+                        <label
+                          key={other.id}
+                          className="flex items-center gap-2 text-sm text-[var(--text)] cursor-pointer py-0.5"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              const next = e.target.checked
+                                ? [...form.dependsOn, other.id]
+                                : form.dependsOn.filter((id) => id !== other.id);
+                              setForm({ ...form, dependsOn: next });
+                            }}
+                            className="accent-[var(--primary)] w-4 h-4"
+                          />
+                          <span className="truncate">{other.title}</span>
+                        </label>
+                      );
+                    })}
+                </div>
+              </fieldset>
+            )}
 
             <div className="flex items-center justify-between gap-3 pt-2">
               {task ? (

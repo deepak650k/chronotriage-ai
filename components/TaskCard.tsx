@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, Pencil, RotateCcw } from "lucide-react";
+import { CheckCircle, Pencil, RotateCcw, Sparkles } from "lucide-react";
 import type { Category, Task, TriageResult } from "@/lib/types";
 import { useApp } from "@/lib/context";
 import { useToast } from "@/components/Toast";
@@ -32,6 +32,36 @@ export default function TaskCard({ task, result, onEdit }: Props) {
   const { dispatch } = useApp();
   const { showToast } = useToast();
   const [showOverride, setShowOverride] = useState(false);
+  const [rephrasedReason, setRephrasedReason] = useState<string | null>(null);
+  const [rephrasing, setRephrasing] = useState(false);
+
+  const handleRephrase = async () => {
+    setRephrasing(true);
+    try {
+      const res = await fetch("/api/explain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: task.title,
+          course: task.course,
+          estimatedHours: task.estimatedHours,
+          importance: task.importance,
+          category: result.category,
+          score: result.score,
+          days: result.days,
+          fallbackReason: result.reason,
+        }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { reason?: string };
+        if (data.reason) setRephrasedReason(data.reason);
+      }
+    } catch {
+      // Silent fallback to deterministic template reason
+    } finally {
+      setRephrasing(false);
+    }
+  };
 
   const handleDone = () => {
     dispatch({ type: "SET_STATUS", id: task.id, status: "done" });
@@ -93,7 +123,7 @@ export default function TaskCard({ task, result, onEdit }: Props) {
       </div>
 
       {/* Reason */}
-      <p className="text-sm text-[var(--text)]/90">{result.reason}</p>
+      <p className="text-sm text-[var(--text)]/90">{rephrasedReason ?? result.reason}</p>
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 pt-1">
@@ -119,6 +149,15 @@ export default function TaskCard({ task, result, onEdit }: Props) {
         >
           <Pencil size={16} aria-hidden="true" />
           Edit
+        </button>
+        <button
+          onClick={handleRephrase}
+          disabled={rephrasing}
+          className="btn-secondary text-xs min-h-[40px] px-3 gap-1.5"
+          aria-label={`Rephrase explanation for ${task.title}`}
+        >
+          <Sparkles size={15} aria-hidden="true" />
+          {rephrasing ? "Polishing…" : "Rephrase"}
         </button>
         {result.overridden && (
           <button

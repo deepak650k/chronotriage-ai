@@ -1,7 +1,13 @@
 // lib/forecast.ts – Heuristic 4-week workload forecast (stretch feature)
 // Not ML prediction. The UI must label it "Estimated from your deadlines."
 
-import { addDays, format, parseISO, startOfISOWeek } from "date-fns";
+import {
+  addDays,
+  differenceInCalendarDays,
+  format,
+  parseISO,
+  startOfISOWeek,
+} from "date-fns";
 import type { Settings, Task } from "./types";
 import { isOpen } from "./triage";
 
@@ -27,11 +33,12 @@ function hasDenseWindow(tasks: Task[]): boolean {
   for (let i = 0; i < important.length; i++) {
     for (let j = i + 1; j < important.length; j++) {
       for (let k = j + 1; k < important.length; k++) {
-        const a = parseISO(important[i].dueDate).getTime();
-        const b = parseISO(important[j].dueDate).getTime();
-        const c = parseISO(important[k].dueDate).getTime();
-        const spread = Math.max(a, b, c) - Math.min(a, b, c);
-        if (spread <= 3 * 24 * 60 * 60 * 1000) return true;
+        const a = parseISO(important[i].dueDate);
+        const b = parseISO(important[j].dueDate);
+        const c = parseISO(important[k].dueDate);
+        const minDate = [a, b, c].reduce((m, d) => (d < m ? d : m));
+        const maxDate = [a, b, c].reduce((m, d) => (d > m ? d : m));
+        if (differenceInCalendarDays(maxDate, minDate) <= 3) return true;
       }
     }
   }
@@ -55,8 +62,8 @@ export function buildForecast(
       const d = parseISO(t.dueDate);
       return (i === 0 && d < ws) || (d >= ws && d <= we);
     });
-    const hours = inWeek.reduce((a, t) => a + t.estimatedHours, 0);
-    const ratio = hours / s.weeklyCapacityHours;
+    const hours = Math.round(inWeek.reduce((a, t) => a + t.estimatedHours, 0) * 10) / 10;
+    const ratio = s.weeklyCapacityHours > 0 ? hours / s.weeklyCapacityHours : 0;
     const dense = hasDenseWindow(inWeek);
     const reasons: string[] = [];
     if (ratio > 1)
@@ -82,7 +89,10 @@ export function buildForecast(
       if (!t || t.importance < 6) continue;
       const daysNeeded = Math.ceil(t.estimatedHours / s.dailyStudyHours) + 2;
       const startDate = addDays(parseISO(t.dueDate), -daysNeeded);
-      const startBy = startDate < today ? format(today, "yyyy-MM-dd") : format(startDate, "yyyy-MM-dd");
+      const startBy =
+        differenceInCalendarDays(startDate, today) < 0
+          ? format(today, "yyyy-MM-dd")
+          : format(startDate, "yyyy-MM-dd");
       suggestions.push({ taskId: t.id, title: t.title, startBy });
     }
   }

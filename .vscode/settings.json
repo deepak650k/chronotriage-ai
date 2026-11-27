@@ -1,0 +1,6 @@
+{
+  "ralphLoop.taskFile": "PRD.md",
+  "ralphLoop.progressFile": "progress.txt",
+  "ralphLoop.useGit": true,
+  "ralphLoop.antigravity.port": 55550
+}

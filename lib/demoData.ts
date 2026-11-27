@@ -1,0 +1,118 @@
+// lib/demoData.ts – Demo tasks relative to today so they never go stale
+
+import type { Task } from "./types";
+import { addDays, format } from "date-fns";
+
+function isoDate(offset: number): string {
+  return format(addDays(new Date(), offset), "yyyy-MM-dd");
+}
+
+export function createDemoTasks(): Task[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: "demo-1",
+      title: "Maths assignment 4",
+      course: "Maths",
+      dueDate: isoDate(2),
+      estimatedHours: 4,
+      importance: 9,
+      status: "todo",
+      dependsOn: [],
+      notes: "",
+      userOverride: null,
+      createdAt: now,
+    },
+    {
+      id: "demo-2",
+      title: "Physics lab report",
+      course: "Physics",
+      dueDate: isoDate(5),
+      estimatedHours: 6,
+      importance: 7,
+      status: "todo",
+      dependsOn: [],
+      notes: "",
+      userOverride: null,
+      createdAt: now,
+    },
+    {
+      id: "demo-3",
+      title: "Programming quiz prep",
+      course: "Programming",
+      dueDate: isoDate(10),
+      estimatedHours: 1,
+      importance: 3,
+      status: "todo",
+      dependsOn: [],
+      notes: "",
+      userOverride: null,
+      createdAt: now,
+    },
+    {
+      id: "demo-4",
+      title: "Club poster design",
+      course: "Club",
+      dueDate: isoDate(6),
+      estimatedHours: 3,
+      importance: 2,
+      status: "todo",
+      dependsOn: [],
+      notes: "",
+      userOverride: null,
+      createdAt: now,
+    },
+    {
+      id: "demo-5",
+      title: "Team project demo",
+      course: "Digital Literacy",
+      dueDate: isoDate(12),
+      estimatedHours: 10,
+      importance: 9,
+      status: "todo",
+      dependsOn: [],
+      notes: "",
+      userOverride: null,
+      createdAt: now,
+    },
+    {
+      id: "demo-6",
+      title: "Environmental Science quiz",
+      course: "Science",
+      dueDate: isoDate(3),
+      estimatedHours: 2,
+      importance: 5,
+      status: "todo",
+      dependsOn: [],
+      notes: "",
+      userOverride: null,
+      createdAt: now,
+    },
+    {
+      id: "demo-7",
+      title: "Return library book",
+      course: "Personal",
+      dueDate: isoDate(1),
+      estimatedHours: 0.5,
+      importance: 2,
+      status: "todo",
+      dependsOn: [],
+      notes: "",
+      userOverride: null,
+      createdAt: now,
+    },
+    {
+      id: "demo-8",
+      title: "Tidy LinkedIn profile",
+      course: "Personal",
+      dueDate: isoDate(9),
+      estimatedHours: 2,
+      importance: 2,
+      status: "todo",
+      dependsOn: [],
+      notes: "",
+      userOverride: null,
+      createdAt: now,
+    },
+  ];
+}

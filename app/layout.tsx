@@ -26,6 +26,10 @@ export const metadata: Metadata = {
   title: "ChronoTriage AI — Calm deadline & priority calendar for students",
   description:
     "Turn overlapping deadlines into a calm, prioritised plan: Must Do, Schedule Later, or Safe to Skip, with a clear reason for every call.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

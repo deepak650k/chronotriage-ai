@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Rounded background -->
+  <rect width="32" height="32" rx="8" fill="#6366f1"/>
+  <!-- Clock face -->
+  <circle cx="16" cy="16" r="10" stroke="white" stroke-width="2" fill="none"/>
+  <!-- Clock hands: 10:10 position for a "done" look -->
+  <line x1="16" y1="16" x2="16" y2="9" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <line x1="16" y1="16" x2="21" y2="19" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  <!-- Center dot -->
+  <circle cx="16" cy="16" r="1.5" fill="white"/>
+  <!-- Triage dot: red must-do indicator at 12 o'clock -->
+  <circle cx="16" cy="7" r="2" fill="#f87171"/>
+</svg>

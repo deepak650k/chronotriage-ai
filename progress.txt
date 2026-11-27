@@ -1,2 +1,85 @@
-# Ralph Loop Progress Log
-Project initialized with full developer toolkit.
+# ChronoTriage AI — Build Progress Log
+Last updated: 2026-11-27
+
+## Status: MVP + Stretch Features COMPLETE ✅
+
+All required deliverables from the PRD and Full Build Specification are implemented,
+tested, and committed to git main (2 commits: 9b1b5e1, 077a628).
+
+---
+
+## Completed Features
+
+### Infrastructure
+- [x] Next.js 16 scaffold (Turbopack, cacheComponents, partialPrefetching)
+- [x] Tailwind CSS token system (light/dark, must/later/skip colors)
+- [x] Space Grotesk + Inter fonts
+- [x] .env.example with all 6 env vars
+- [x] GitHub Actions CI (lint + typecheck + test)
+- [x] .gitignore
+
+### Pages (all MVP routes)
+- [x] / — Landing page (hero, how it works, FAQ)
+- [x] /app — Dashboard (greeting, summary cards, load meter, task list, skip panel)
+- [x] /app/calendar — Monthly/weekly calendar grid + day panel
+- [x] /app/tasks — Table + card view, 5 filters
+- [x] /app/forecast — 4-week bar chart, crunch warnings, start-early suggestions
+- [x] /app/settings — Capacity, email, voice, theme, export, reset
+- [x] /about — Problem, scoring formula, team, tools, privacy
+
+### Data & Logic
+- [x] lib/types.ts — Task, Settings, TriageResult, AppState types
+- [x] lib/storage.ts — localStorage wrapper (chronotriage:v1)
+- [x] lib/triage.ts — Deterministic triage engine
+- [x] lib/reasons.ts — Plain-language reason builder
+- [x] lib/forecast.ts — 4-week load forecast with crunch detection
+- [x] lib/demoData.ts — 8 relative-date demo tasks
+- [x] lib/context.tsx — AppProvider (useReducer, HYDRATE action, theme sync)
+- [x] lib/utils.ts — cn(), formatDate(), greeting()
+- [x] lib/rateLimit.ts — In-memory rate limiter
+- [x] lib/briefingScript.ts — Deterministic voice briefing script
+
+### Components
+- [x] CategoryBadge, LoadMeter, SummaryCards, Toast/ToastProvider
+- [x] TaskModal (add/edit/delete, focus trap, Escape, validation)
+- [x] TaskCard (score tooltip, label override, done/undo, Rephrase button)
+- [x] Navbar (sticky, mobile hamburger, floating add button)
+- [x] CalendarGrid (month + week views, arrow key nav, load tinting)
+- [x] DayPanel (side panel / bottom sheet)
+- [x] SkipPanel (skip with undo), EmptyState, ConfirmDialog
+- [x] ReminderButton (calls /api/reminders)
+- [x] BriefingPlayer (calls /api/briefing, transcript always shown)
+- [x] ForecastChart (CSS bars + accessible <table> alternative)
+- [x] Footer
+
+### API Routes
+- [x] /api/reminders — Zapier Catch Hook integration
+- [x] /api/briefing — ElevenLabs TTS voice briefing (stretch)
+- [x] /api/explain — Gemini 2.5 Flash reason rewriter (stretch)
+
+### Unit Tests (20 tests, 4 files)
+- [x] lib/triage.test.ts — 9 tests (all 12 spec test cases)
+- [x] lib/reasons.test.ts — 3 tests
+- [x] lib/storage.test.ts — 4 tests
+- [x] lib/forecast.test.ts — 4 tests
+
+### Documentation
+- [x] README.md — Quick start, scoring formula, env vars, deployment
+- [x] docs/BOTPRESS.md — Full Botpress persona + KB setup guide
+- [x] docs/ZAPIER.md — Step-by-step Zapier Catch Hook → Gmail guide
+- [x] docs/DECISIONS.md — Architecture decisions
+
+### Verification (all passing)
+- [x] npm run typecheck — 0 errors
+- [x] npm run lint — 0 errors
+- [x] npm run test — 20/20 tests pass
+- [x] npm run build — 13 static + 3 dynamic API routes
+
+---
+
+## Remaining (manual setup by user)
+- [ ] Copy .env.example to .env.local and fill in secrets
+- [ ] Create Zapier Catch Hook (see docs/ZAPIER.md)
+- [ ] Create Botpress ChronoBot (see docs/BOTPRESS.md)
+- [ ] Optionally add ElevenLabs + Gemini keys for stretch features
+- [ ] Push to GitHub and import into Vercel for deployment

@@ -240,6 +240,7 @@ function TaskModalInner({
                 <button
                   key={preset.label}
                   type="button"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() =>
                     setForm((prev) => ({
                       ...prev,
